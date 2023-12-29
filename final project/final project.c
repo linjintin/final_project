@@ -1,0 +1,104 @@
+﻿#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <windows.h>
+
+int planeX, planeY;
+int enemyX, enemyY;
+int bulletX, bulletY;
+int score = 0;
+
+void gotoxy(int x, int y) {
+	COORD coord;
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+void drawPlane() {
+    gotoxy(planeX, planeY);
+    printf("  ^  ");
+    gotoxy(planeX, planeY + 1);
+    printf(" /|\\ ");
+    gotoxy(planeX, planeY + 2);
+    printf("/ | \\");
+}
+
+void drawEnemy() {
+	gotoxy(enemyX, enemyY);
+	printf("V");
+}
+
+void drawBullet() {
+	gotoxy(bulletX, bulletY);//一直印出
+	printf("|");
+}
+
+//void clearBullet() {
+	//gotoxy(bulletX, bulletY);
+	//printf(" ");
+//}
+
+
+//void updateScore() {
+	//printf("Score: %d", score);
+	//Sleep(50);
+//}
+
+void gameSetup() {
+	planeX = 20;
+	planeY = 20;
+	enemyX = rand() % 60 + 10;
+	enemyY = 2;
+	bulletX = planeX + 1;
+	bulletY = planeY - 1;
+}
+
+int main() {
+	char ch;
+	
+	system("cls");
+	gameSetup();
+
+	while (1) {//大迴圈
+		if (_kbhit()) {//函式檢測輸入
+			ch = _getch();
+			//printf("Key pressed: %c\n", ch);
+			switch (ch) {
+			case 'a':                         //注意大小寫
+				if (planeX > 0) planeX--;
+				break;
+			case 'd':
+				if (planeX < 70) planeX++;
+				break;
+			case ' ':
+				bulletX = planeX + 2;
+				bulletY = planeY - 1;
+				break;
+			case 'x':
+				exit(0);
+			}
+			
+		}
+		printf("Score: %d", score);
+		//clearBullet();
+		if (bulletY > 0) {           //只要大於0就一直做
+			bulletY--;               //y值越大越下面
+			drawBullet();            //子彈軌跡
+		}
+		drawPlane();                 //繪製飛機
+		drawEnemy();                 //繪製敵機
+		
+
+		if (bulletX == enemyX && bulletY == enemyY) {
+			score++;
+			//updateScore();
+			enemyX = rand() % 60 + 10;
+			enemyY = rand() %4+1;
+		}
+
+		Sleep(50);
+		system("cls");
+	}//大迴圈
+	return 0;
+}
