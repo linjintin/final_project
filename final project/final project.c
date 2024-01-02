@@ -9,6 +9,8 @@ int enemyX, enemyY;
 int bulletX, bulletY;
 int score = 0, enemyHorizontalDirection=1,time=0,time1=0;
 int lives = 6;
+int numBlocks = 0;
+int blockX[5], blockY[5];
 
 void gotoxy(int x, int y) {
 	COORD coord;
@@ -38,6 +40,11 @@ void drawBullet() {
 	printf("|");
 }
 
+void drawBlock(int index) {
+	gotoxy(blockX[index], blockY[index]);
+	printf("*");
+}
+
 //void clearBullet() {
 	//gotoxy(bulletX, bulletY);
 	//printf(" ");
@@ -58,7 +65,10 @@ void gameSetup() {
 	enemyY = 2;
 	bulletX = planeX + 1;
 	bulletY = planeY - 1;
+
+	numBlocks = 0;
 }
+
 void moveEnemy() {
 	if (score >= 6) {
 		if (score >= 9) {
@@ -97,6 +107,46 @@ void moveEnemy() {
 		}
 	}
 }
+
+void moveBlocks() {
+	for (int i = 0; i < numBlocks; i++) {
+		blockY[i]++;
+		// 檢查是否與飛機發生碰撞
+		if (blockX[i] >= planeX && blockX[i] <= planeX + 3 && blockY[i] >= planeY && blockY[i] <= planeY + 2) {
+			lives--;
+			if (lives > 0) {
+				updateScore();
+				blockX[i] = rand() % 60 + 10;
+				blockY[i] = 3;
+			}
+			else {
+				printf("\nGame Over!");
+				exit(0);
+			}
+		}
+		// 檢查方塊是否到達底部
+		if (blockY[i] >= 20) {
+			blockX[i] = rand() % 60 + 10;
+			blockY[i] = 3;
+		}
+	}
+}
+
+void addBlock() {
+	if (numBlocks < 3) {
+		// 得到9分後每3分加一格
+		if (score > 9 && (score - 9) % 3 == 0) {
+			// 產生不靠近平面的隨機區塊位置
+			do {
+				blockX[numBlocks] = rand() % 60 + 10;
+				blockY[numBlocks] = rand() % 15 + 3;
+			} while (abs(blockX[numBlocks] - planeX) < 10 && abs(blockY[numBlocks] - planeY) < 5);
+
+			numBlocks++;
+		}
+	}
+}
+
 int main() {
 	char ch;
 
@@ -144,7 +194,7 @@ int main() {
 			lives--;
 			if (lives > 0) {
 				updateScore();
-				// Reset enemy position after collision
+				// 碰撞後重置敵人位置
 				enemyX = rand() % 60 + 10;
 				enemyY = rand() % 4 + 1;
 			}
@@ -154,7 +204,33 @@ int main() {
 			}
 		}
 
+		// Check for collision with block
+		for (int i = 0; i < numBlocks; i++) {
+			if (bulletX == blockX[i] && bulletY == blockY[i]) {
+				// Bullet hit a block, stop bullet and remove the block
+				bulletY = 0;
+				for (int j = i; j < numBlocks - 1; j++) {
+					blockX[j] = blockX[j + 1];
+					blockY[j] = blockY[j + 1];
+				}
+				numBlocks--;
+				updateScore();  
+			}
+		}
+
+		// 繪製和移動區塊
+		moveBlocks();
+		for (int i = 0; i < numBlocks; i++) {
+			drawBlock(i);
+		}
+
+		// 檢查是否與子彈發生碰撞
+		for (int i = 0; i < numBlocks; i++) {
+			drawBlock(i);
+		}
+
 		moveEnemy();
+		addBlock();
 
 		Sleep(50);
 		system("cls");
