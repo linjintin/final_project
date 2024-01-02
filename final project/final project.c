@@ -61,11 +61,23 @@ void gameSetup() {
 }
 void moveEnemy() {
 	if (score >= 6) {
+		if (score >= 9) {
+			time1++;
+			if (time1 > 2) {
+				enemyY++;
+				// 在達到底部時重新設定敵機位置
+				if (enemyY > 20) {
+					enemyX = rand() % 60 + 10;
+					enemyY = 2;
+				}
+				time1 = 0;
+			}
+		}
 		time1++;
 		if (time1 > 3) {
 			enemyY++;
 			// 在達到底部時重新設定敵機位置
-			if (enemyY >= 20) {
+			if (enemyY > 20) {
 				enemyX = rand() % 60 + 10;
 				enemyY = 2;
 			}
