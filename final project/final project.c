@@ -43,6 +43,8 @@ void drawBullet() {
 //}
 
 
+
+
 void updateScore() {
 	printf("Score: %d", score);
 	Sleep(50);
