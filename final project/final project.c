@@ -8,6 +8,7 @@ int planeX, planeY;
 int enemyX, enemyY;
 int bulletX, bulletY;
 int score = 0, enemyHorizontalDirection=1,time=0,time1=0;
+int lives = 6;
 
 void gotoxy(int x, int y) {
 	COORD coord;
@@ -90,7 +91,7 @@ int main() {
 	system("cls");
 	gameSetup();
 
-	while (1) {//大迴圈
+	while (lives>0) {//大迴圈
 		if (_kbhit()) {//函式檢測輸入
 			ch = _getch();
 			//printf("Key pressed: %c\n", ch);
@@ -110,7 +111,7 @@ int main() {
 			}
 
 		}
-		printf("Score: %d", score);
+		printf("Score: %d Lives %d", score, lives);
 		//clearBullet();
 		if (bulletY > 0) {           //只要大於0就一直做
 			bulletY--;               //y值越大越下面
@@ -127,10 +128,25 @@ int main() {
 			enemyY = rand() % 4 + 1;
 			Sleep(50);
 		}
+		if ((planeX <= enemyX + 2 && planeX + 3 >= enemyX) && (planeY <= enemyY + 1 && planeY + 2 >= enemyY)) {
+			lives--;
+			if (lives > 0) {
+				updateScore();
+				// Reset enemy position after collision
+				enemyX = rand() % 60 + 10;
+				enemyY = rand() % 4 + 1;
+			}
+			else {
+				printf("\nGame Over!");
+				break;
+			}
+		}
+
 		moveEnemy();
 
 		Sleep(50);
 		system("cls");
 	}//大迴圈
+
 	return 0;
 }
