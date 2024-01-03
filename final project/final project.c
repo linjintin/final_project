@@ -3,14 +3,19 @@
 #include <conio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <time.h>
+
 
 int planeX, planeY;
 int enemyX, enemyY;
 int bulletX, bulletY;
-int score = 0, enemyHorizontalDirection=1,time=0,time1=0;
+int score = 0, enemyHorizontalDirection=1,time0=0,time1=0,time2=0,time3=0;
 int lives = 6;
 int numBlocks = 0;
 int blockX[5], blockY[5];
+int specialItemX, specialItemY;
+int timeout = 0;  // 
+
 
 void gotoxy(int x, int y) {
 	COORD coord;
@@ -50,9 +55,6 @@ void drawBlock(int index) {
 	//printf(" ");
 //}
 
-
-
-
 void updateScore() {
 	printf("Score: %d", score);
 	Sleep(50);
@@ -65,15 +67,16 @@ void gameSetup() {
 	enemyY = 2;
 	bulletX = planeX + 1;
 	bulletY = planeY - 1;
-
 	numBlocks = 0;
+	specialItemX = -1;
+	specialItemY = -1;
 }
 
-void moveEnemy() {
-	if (score >= 6) {
-		if (score >= 9) {
+void moveEnemy(int timeout) {
+	if (score >= 6||timeout==1) {
+		if (score >= 9 && timeout == 0) {//當到9分
 			time1++;
-			if (time1 > 2) {
+			if (time1 > 2) {//快的
 				enemyY++;
 				// 在達到底部時重新設定敵機位置
 				if (enemyY > 20) {
@@ -82,12 +85,13 @@ void moveEnemy() {
 				}
 				time1 = 0;
 			}
-		}
+		} //當到9分
 		time1++;
-		if (time1 > 3) {
+		if (time1 > 5) {//慢的
 			enemyY++;
 			// 在達到底部時重新設定敵機位置
 			if (enemyY > 20) {
+				//aaaaatimeout = 0;
 				enemyX = rand() % 60 + 10;
 				enemyY = 2;
 			}
@@ -95,11 +99,11 @@ void moveEnemy() {
 		}
 	}
 	else if (score >= 3) {
-		time++;
+		time0++;
 		// 啟動敵機左右移動，改變水平移動方向
-		if (time >2) {
+		if (time0 >2) {
 			enemyX += enemyHorizontalDirection;
-			time = 0;
+			time0 = 0;
 		}
 		// 在達到邊界時改變方向
 		if (enemyX <= 0 || enemyX >= 70) {
@@ -108,29 +112,6 @@ void moveEnemy() {
 	}
 }
 
-void moveBlocks() {
-	for (int i = 0; i < numBlocks; i++) {
-		blockY[i]++;
-		// 檢查是否與飛機發生碰撞
-		if (blockX[i] >= planeX && blockX[i] <= planeX + 3 && blockY[i] >= planeY && blockY[i] <= planeY + 2) {
-			lives--;
-			if (lives > 0) {
-				updateScore();
-				blockX[i] = rand() % 60 + 10;
-				blockY[i] = 3;
-			}
-			else {
-				printf("\nGame Over!");
-				exit(0);
-			}
-		}
-		// 檢查方塊是否到達底部
-		if (blockY[i] >= 20) {
-			blockX[i] = rand() % 60 + 10;
-			blockY[i] = 3;
-		}
-	}
-}
 
 void addBlock() {
 	if (numBlocks < 3) {
@@ -146,12 +127,137 @@ void addBlock() {
 		}
 	}
 }
+void moveBlocks(int highScore) {
+	if (timeout == 1) {
+		time3++;
+		if (time3 > 3) {
+			for (int i = 0; i < numBlocks; i++) {
+				blockY[i]++;
+				// 檢查是否與飛機發生碰撞
+				if (blockX[i] >= planeX && blockX[i] <= planeX + 3 && blockY[i] >= planeY && blockY[i] <= planeY + 2) {
+					lives--;
+					if (lives > 0) {
+						updateScore();
+						blockX[i] = rand() % 60 + 10;
+						blockY[i] = 3;
+					}
+					else {
+						system("cls");
+						printf("Game Over!\n");
+						printf("High Score: %d  ", highScore);
+						printf("Score: %d\n", score);
+						system("pause");
+					}
+				}
+				// 檢查方塊是否到達底部
+				if (blockY[i] >= 23) {
+					blockX[i] = rand() % 60 + 10;
+					blockY[i] = 3;
+				}
+		}
+			time3 = 0;
+	}
+	}
+	else if (timeout == 0) {
+		time3++;
+		if (time3 > 1) {
+			for (int i = 0; i < numBlocks; i++) {
+				blockY[i]++;
+				// 檢查是否與飛機發生碰撞
+				if (blockX[i] >= planeX && blockX[i] <= planeX + 3 && blockY[i] >= planeY && blockY[i] <= planeY + 2) {
+					lives--;
+					if (lives > 0) {
+						updateScore();
+						blockX[i] = rand() % 60 + 10;
+						blockY[i] = 3;
+					}
+					else {
+						system("cls");
+						printf("Game Over!\n");
+						printf("High Score: %d  ", highScore);
+						printf("Score: %d\n", score);
+						system("pause");
+					}
+				}
+				// 檢查方塊是否到達底部
+				if (blockY[i] >= 23) {
+					blockX[i] = rand() % 60 + 10;
+					blockY[i] = 3;
+				}
+			}
+			time3 = 0;
+		}
+	}
+}
 
+void saveHighScore(int highScore) {
+	FILE* file = fopen("highscore.txt", "w");
+	if (file != NULL) {
+		fprintf(file, "%d", highScore);
+		fclose(file);
+	}
+}
+
+int loadHighScore() {
+	FILE* file = fopen("highscore.txt", "r");
+	int highScore = 0;
+
+	if (file != NULL) {
+		fscanf(file, "%d", &highScore);
+		fclose(file);
+	}
+
+	return highScore;
+}
+void moveSpecialItem() {
+	time2++;
+	
+	if (specialItemY != -1) {
+		if (time2 > 3) {
+			specialItemY++;
+
+			// 檢查特殊道具是否與飛機發生碰撞
+			if (planeX <= specialItemX && planeX + 3 >= specialItemX && planeY <= specialItemY + 1 && planeY + 2 >= specialItemY) {
+				// 觸發特殊效果，這裡你可以根據需要加入不同的效果
+				// 這邊示範的是增加一次射擊的功能
+				specialItemX = -1;
+				specialItemY = -1;
+				bulletX = planeX + 2;
+				bulletY = planeY - 1;
+				timeout = 1;
+				moveEnemy(timeout);  // 呼叫減慢敵機的函數
+			}
+			//timeout = 0;不能這樣寫好像沒用
+			// 檢查特殊道具是否到達底部
+			if (specialItemY >= 23) {
+				specialItemX = -1;
+				specialItemY = -1;
+			}
+			time2 = 0;
+		}
+	}
+}
+void generateSpecialItem() {
+	if (score > 12) {//大於12分才開始落道具
+		if (specialItemY == -1 && rand() % 100 < 5) {  // 5% 的機率產生特殊道具
+			specialItemX = rand() % 60 + 10;
+			specialItemY = 2;
+		}
+	}
+}
+
+void drawSpecialItem() {
+	if (specialItemY != -1) {
+		gotoxy(specialItemX, specialItemY);
+		printf("@");
+	}
+}
 int main() {
 	char ch;
-
+	int highScore = loadHighScore();
 	system("cls");
 	gameSetup();
+	srand(time(NULL));
 
 	while (lives>0) {//大迴圈
 		if (_kbhit()) {//函式檢測輸入
@@ -186,6 +292,7 @@ int main() {
 		if ((bulletX >= enemyX && bulletX < enemyX + 3 && bulletY >= enemyY && bulletY < enemyY + 2)) {
 			score++;
 			updateScore();
+			timeout = 0;
 			enemyX = rand() % 60 + 10;
 			enemyY = rand() % 4 + 1;
 			Sleep(50);
@@ -199,8 +306,11 @@ int main() {
 				enemyY = rand() % 4 + 1;
 			}
 			else {
-				printf("\nGame Over!");
-				break;
+				system("cls");
+				printf("Game Over!\n");
+				printf("High Score: %d  ", highScore);
+				printf("Score: %d\n", score);
+				system("pause");
 			}
 		}
 
@@ -219,7 +329,7 @@ int main() {
 		}
 
 		// 繪製和移動區塊
-		moveBlocks();
+		moveBlocks(highScore);
 		for (int i = 0; i < numBlocks; i++) {
 			drawBlock(i);
 		}
@@ -228,13 +338,22 @@ int main() {
 		for (int i = 0; i < numBlocks; i++) {
 			drawBlock(i);
 		}
-
-		moveEnemy();
+		if (score > highScore) {
+			highScore = score;
+			saveHighScore(highScore);
+		}
+		moveEnemy(timeout);
 		addBlock();
-
+		generateSpecialItem();
+		moveSpecialItem();  // 新增呼叫特殊道具移動函數
+		drawSpecialItem();
 		Sleep(50);
 		system("cls");
 	}//大迴圈
-
+	system("cls");
+	printf("Game Over!\n");
+	printf("High Score: %d  ", highScore);
+	printf("Score: %d\n", score);
+	system("pause");
 	return 0;
 }
